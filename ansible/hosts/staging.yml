@@ -1,0 +1,11 @@
+all:
+  hosts:
+    staging:
+      ansible_host: 159.223.22.7
+  childreen: 
+    staging:
+      hosts:
+        staging:
+    web:
+      hosts:
+        staging:

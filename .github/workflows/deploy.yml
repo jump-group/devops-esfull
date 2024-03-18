@@ -59,17 +59,6 @@ jobs:
         id: test
         working-directory: src
         continue-on-error: true
-      
-      - name: Notify Success
-        if: steps.test.outcome == 'success'
-        uses: voxmedia/github-action-slack-notify-build@v1
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN }}
-        with:
-          channel_id: ${{ vars.CHANNEL_ID }}
-          message_id: ${{ steps.slack.outputs.message_id }}
-          status: SUCCESS
-          color: good
 
       - name: Notify Failure
         if: steps.test.outcome == 'failure'
@@ -81,6 +70,36 @@ jobs:
           message_id: ${{ steps.slack.outputs.message_id }}
           status: FAILURE
           color: danger
+
+      - name: Run playbook
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          # Required, playbook filepath
+          playbook: deploy.yml
+          # Optional, directory where playbooks live
+          directory: ./ansible
+          inventory: |
+            [staging]
+            165.227.139.136
+
+            [web]
+            165.227.139.136
+          # Optional, ansible configuration file content (ansible.cfg)
+          configuration: |
+            [defaults]
+            host_key_checking = True
+            log_path = /var/log/ansible.log
+            force_color = True
+            inventory = hosts
+
+            [ssh_connection]
+            ssh_args = -o ForwardAgent=yes -o ControlMaster=auto -o ControlPersist=60s -o HostKeyAlgorithms=ssh-ed25519-cert-v01@openssh.com,ssh-rsa-cert-v01@openssh.com,ssh-ed25519,ssh-rsa
+            retries = 1
+          # Optional, SSH private key
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          # Optional, additional flags to pass to ansible-playbook
+          options: |
+            --e env=staging
 
       
     

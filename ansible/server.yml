@@ -1,0 +1,82 @@
+---
+
+- name: Provision Server - Add Users
+  hosts: web:{{ env }}
+  become: true
+  remote_user: "{{ admin_user }}"
+  vars_files:
+    - vars/user.yml
+  roles:
+    - { role: users, tags: ['users'] }
+
+- name: Provision Server - Install Packages
+  hosts: web:{{ env }}
+  become: true
+  remote_user: "{{ admin_user }}"
+  vars_files:
+    - vars/user.yml
+    - vars/default.yml
+  tasks:
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: present
+    
+    - name: Required packages
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+        state: latest
+        update_cache: true
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Update at and Install docker-ce 
+      apt:
+        update_cache: yes
+        name: docker-ce
+        state: present
+
+    - name: Install Docker mudule for python3
+      pip:
+        name: docker
+        state: present
+
+    - name: Install Docker Compose
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: Create Web Directory
+      file:
+        path: /var/www
+        state: directory
+        owner: "{{ web_user }}"
+        group: "{{ web_group }}"
+
+    - name: Create Root Directory
+      file:
+        path: /var/www/{{ web_root }}
+        state: directory
+        owner: "{{ web_user }}"
+        group: "{{ web_group }}"
+
+    - name: Add user to Docker group
+      user:
+        name: "{{ web_user }}"
+        groups: docker
+        append: yes

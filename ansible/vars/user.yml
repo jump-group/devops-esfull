@@ -1,0 +1,20 @@
+---
+admin_user: root
+
+users:
+  - name: "{{ web_user }}"
+    groups: 
+      - "{{ web_group }}"
+    keys:
+      - https://github.com/giade.keys
+      - https://github.com/giadabot.keys
+
+  - name: "{{ admin_user }}"
+    groups: 
+      - sudo
+    keys:
+      - https://github.com/giade.keys
+      - https://github.com/giadabot.keys
+
+web_user: web
+web_group: www-data
