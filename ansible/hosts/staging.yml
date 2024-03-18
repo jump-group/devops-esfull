@@ -1,7 +1,7 @@
 all:
   hosts:
     staging:
-      ansible_host: 159.223.22.7
+      ansible_host: 165.227.139.136
   childreen: 
     staging:
       hosts:
