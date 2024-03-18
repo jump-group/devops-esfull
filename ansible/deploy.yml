@@ -1,0 +1,29 @@
+# yaml-language-server: $schema='none'
+
+---
+- name: Clone Repository
+  hosts: web:&{{ env }}
+  vars_files:
+    - vars/default.yml
+    - vars/users.yml
+  remote_user: "{{ web_user }}"
+  tasks:
+    - name: Remove Old Directory
+      file:
+        path: "/var/www/{{ http_host }}/giada"
+        state: absent
+
+    - name: Clone Repository
+      git:
+        repo: "{{ project_repo }}"
+        dest: "/var/www/{{ http_host }}/giada"
+        version: "{{ project_branch }}"
+        accept_hostkey: yes
+
+    #start docker compose
+    - name: Start Docker Compose
+      command: docker compose -f /var/www/{{ http_host }}/giada/docker-compose.yml up -d
+      args:
+        chdir: /var/www/{{ http_host }}/giada
+
+    

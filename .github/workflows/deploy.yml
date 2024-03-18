@@ -73,6 +73,7 @@ jobs:
 
       - name: Run playbook
         uses: dawidd6/action-ansible-playbook@v2
+        id: deploy
         with:
           # Required, playbook filepath
           playbook: deploy.yml
@@ -100,6 +101,29 @@ jobs:
           # Optional, additional flags to pass to ansible-playbook
           options: |
             --e env=staging
+    
+      - name: Notify Failure
+        if: steps.deploy.outcome == 'failure'
+        uses: voxmedia/github-action-slack-notify-build@v1
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN }}
+        with:
+          channel_id: ${{ vars.CHANNEL_ID }}
+          message_id: ${{ steps.slack.outputs.message_id }}
+          status: FAILURE
+          color: danger
+
+      - name: Notify Success
+        if: steps.deploy.outcome == 'success'
+        uses: voxmedia/github-action-slack-notify-build@v1
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN }}
+        with:
+          channel_id: ${{ vars.CHANNEL_ID }}
+          message_id: ${{ steps.slack.outputs.message_id }}
+          status: SUCCESS
+          color: good
+
 
       
     
