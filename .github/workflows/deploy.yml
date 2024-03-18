@@ -63,7 +63,6 @@ jobs:
       - name: Notify Success
         if: steps.test.outcome == 'success'
         uses: voxmedia/github-action-slack-notify-build@v1
-        id: slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN }}
         with:
@@ -71,6 +70,17 @@ jobs:
           message_id: ${{ steps.slack.outputs.message_id }}
           status: SUCCESS
           color: good
+
+      - name: Notify Failure
+        if: steps.test.outcome == 'failure'
+        uses: voxmedia/github-action-slack-notify-build@v1
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN }}
+        with:
+          channel_id: ${{ vars.CHANNEL_ID }}
+          message_id: ${{ steps.slack.outputs.message_id }}
+          status: FAILURE
+          color: danger
 
       
     
