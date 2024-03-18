@@ -1,0 +1,79 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - development
+      - master
+
+jobs: 
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/development'
+    steps:
+      - name: Send Slack Message
+        uses: voxmedia/github-action-slack-notify-build@v1
+        id: slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN }}
+        with:
+          channel_id: ${{ vars.CHANNEL_ID }}
+          status: STARTING
+          color: warning
+  
+      - name: Add Docker Cache Layer
+        uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GIT_PAT }}
+          ref: development
+
+      # ... contents as before
+      - name: Set my SSH key and ssh-agent
+        uses: webfactory/ssh-agent@v0.1.1
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        with:
+            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: yarn install
+        working-directory: src
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Run test
+        run: docker-compose run addressbook npm test
+        id: test
+        working-directory: src
+        continue-on-error: true
+      
+      - name: Notify Success
+        if: steps.test.outcome == 'success'
+        uses: voxmedia/github-action-slack-notify-build@v1
+        id: slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN }}
+        with:
+          channel_id: ${{ vars.CHANNEL_ID }}
+          message_id: ${{ steps.slack.outputs.message_id }}
+          status: SUCCESS
+          color: good
+
+      
+    
+
+
+      

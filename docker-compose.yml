@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  postgres:
+    image: "postgres"
+    container_name: "esfull-postgres"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  addressbook:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: "esfull-addressbook"
+    command: "npm run start"
+    volumes:
+      - /usr/src/app/node_modules
+      - ./src:/usr/src/app
+    depends_on:
+      - postgres
+    ports:
+      - "3000:3000"
+    environment:
+      DB_SCHEMA: "postgres"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+      DB_HOST: "postgres"
+
+volumes:
+  andressbook-db:

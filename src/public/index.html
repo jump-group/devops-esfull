@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persons API Demo</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+<body>
+    <h1>Persons API Demo</h1>
+
+    <button onclick="getAllPersons()">Get All Persons</button>
+    <br>
+    <br>
+    <label for="personId">Person ID:</label>
+    <input type="text" id="personId" placeholder="Enter Person ID">
+    <button onclick="getPersonById()">Get Person by ID</button>
+    <br>
+    <br>
+    <label for="firstName">First Name:</label>
+    <input type="text" id="firstName" placeholder="Enter First Name">
+    <label for="lastName">Last Name:</label>
+    <input type="text" id="lastName" placeholder="Enter Last Name">
+    <button onclick="createPerson()">Create Person</button>
+    <br>
+    <br>
+    <label for="deletePersonId">Person ID to Delete:</label>
+    <input type="text" id="deletePersonId" placeholder="Enter Person ID to Delete">
+    <button onclick="deletePerson()">Delete Person</button>
+
+    <div id="result"></div>
+
+    <script>
+        function getAllPersons() {
+            $.ajax({
+                url: '/persons/all',
+                type: 'GET',
+                success: function(data) {
+                    // Converti la stringa JSON in un oggetto JavaScript
+                    var parsedData = JSON.parse(data);
+                    // Creare l'intestazione della tabella con i nomi delle colonne
+                    var tableHtml = '<table class="styled-table"><thead><tr><th>ID</th><th>FirstName</th><th>LastName</th><th>CreatedAt</th><th>UpdatedAt</th></tr></thead><tbody>';
+
+                    // Iterare attraverso ogni elemento dell'array
+                    parsedData.forEach(function(person) {
+                        // Aggiungere una riga alla tabella per ogni elemento
+                        tableHtml += '<tr>' +
+                                    '<td>' + person.id + '</td>' +
+                                    '<td>' + person.firstName + '</td>' +
+                                    '<td>' + person.lastName + '</td>' +
+                                    '<td>' + person.createdAt + '</td>' +
+                                    '<td>' + person.updatedAt + '</td>' +
+                                    '</tr>';
+                    });
+
+                    // Chiudere la tabella
+                    tableHtml += '</table>';
+
+                    // Visualizzare la tabella nell'elemento '#result'
+                    $('#result').html(tableHtml);
+                },
+                error: function(error) {
+                    console.error(error);
+                    $('#result').html('Error occurred. Check the console for details.');
+                }
+            });
+        }
+
+        function getPersonById() {
+            var personId = $('#personId').val();
+            $.ajax({
+                url: '/persons/' + personId,
+                type: 'GET',
+                success: function(data) {
+                    var parsedData = JSON.parse(data);
+
+                    var tableHtml = '<table class="styled-table"><thead><tr><th>ID</th><th>FirstName</th><th>LastName</th><th>CreatedAt</th><th>UpdatedAt</th></tr></thead><tbody>';
+
+                    tableHtml += '<tr>' +
+                                '<td>' + parsedData.id + '</td>' +
+                                '<td>' + parsedData.firstName + '</td>' +
+                                '<td>' + parsedData.lastName + '</td>' +
+                                '<td>' + parsedData.createdAt + '</td>' +
+                                '<td>' + parsedData.updatedAt + '</td>' +
+                                '</tr>';
+                            
+                    tableHtml += '</table>';
+
+                    $('#result').html(tableHtml);
+                },
+                error: function(error) {
+                    console.error(error);
+                    $('#result').html('Error occurred. Check the console for details.');
+                }
+            });
+        }
+
+        function createPerson() {
+            var firstName = $('#firstName').val();
+            var lastName = $('#lastName').val();
+            $.ajax({
+                url: '/persons/',
+                type: 'PUT',
+                data: { firstName: firstName, lastName: lastName },
+                success: function(data) {
+                    $('#result').html('Person created: ' + JSON.stringify(data));
+
+                    var parsedData = JSON.parse(data);
+
+                    var tableHtml = '<table class="styled-table"><thead><tr><th>ID</th><th>FirstName</th><th>LastName</th><th>CreatedAt</th><th>UpdatedAt</th></tr></thead><tbody>';
+
+                    tableHtml += '<tr>' +
+                                '<td>' + parsedData.id + '</td>' +
+                                '<td>' + parsedData.firstName + '</td>' +
+                                '<td>' + parsedData.lastName + '</td>' +
+                                '<td>' + parsedData.createdAt + '</td>' +
+                                '<td>' + parsedData.updatedAt + '</td>' +
+                                '</tr>';
+                            
+                    tableHtml += '</table>';
+
+                    $('#result').html(tableHtml);
+                },
+                error: function(error) {
+                    console.error(error);
+                    $('#result').html('Error occurred. Check the console for details.');
+                }
+            });
+        }
+
+        function deletePerson() {
+            var personId = $('#deletePersonId').val();
+            $.ajax({
+                url: '/persons/' + personId,
+                type: 'DELETE',
+                success: function() {
+                    $('#result').html('Person deleted successfully.');
+                },
+                error: function(error) {
+                    console.error(error);
+                    $('#result').html('Error occurred. Check the console for details.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
